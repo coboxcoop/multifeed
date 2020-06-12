@@ -16,8 +16,9 @@
   "keywords": [],
   "dependencies": {
     "abstract-extension": "^3.1.0",
+    "corestore": "^5.5.0",
     "debug": "^4.1.0",
-    "hypercore": "^9",
+    "hypercore": "^9.2.2",
     "hypercore-protocol": "^8",
     "inherits": "^2.0.3",
     "mutexify": "^1.2.0",
@@ -29,9 +30,8 @@
     "through2": "^3.0.0"
   },
   "devDependencies": {
+    "corestore-swarm-networking": "^5.5.1",
     "@hyperswarm/dht": "^3.6.5",
-    "corestore": "^5.3.2",
-    "corestore-swarm-networking": "^5.4.3",
     "hypercore-crypto": "^2.0.0",
     "pump": "^3.0.0",
     "pumpify": "^1.5.1",
