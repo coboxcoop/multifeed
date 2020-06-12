@@ -1,9 +1,7 @@
 const Corestore = require('corestore')
 const Protocol = require('hypercore-protocol')
 const Nanoresource = require('nanoresource/emitter')
-const ram = require('random-access-memory')
 const collect = require('stream-collector')
-const hypercore = require('hypercore')
 const debug = require('debug')('multifeed')
 const raf = require('random-access-file')
 const through = require('through2')
@@ -13,6 +11,7 @@ const { CorestoreMuxerTopic } = require('./corestore')
 const defaultEncryptionKey = Buffer.from('bee80ff3a4ee5e727dc44197cb9d25bf8f19d50b0f3ad2984cfe5b7d14e75de7', 'hex')
 
 const LISTFEED_NAMESPACE = 'multifeed-feedlist'
+const MULTIFEED_NAMESPACE = 'multifeed'
 
 module.exports = (...args) => new CorestoreMultifeed(...args)
 
@@ -20,12 +19,14 @@ class CorestoreMultifeed extends Nanoresource {
   constructor (storage, opts) {
     super()
     this._opts = opts
-    this._rootKey = opts.encryptionKey || opts.key
+    this._rootKey = opts.rootKey || opts.encryptionKey || opts.key
     if (!this._rootKey) {
       debug('WARNING: Using insecure default encryption key')
       this._rootKey = defaultEncryptionKey
     }
-    this._corestore = defaultCorestore(storage, opts).namespace(this._rootKey)
+    this._corestore = defaultCorestore(storage, opts)
+      .namespace(MULTIFEED_NAMESPACE + '/' + this._rootKey)
+
     this._handlers = opts.handlers || defaultPersistHandlers(this._corestore)
     this._feedsByKey = new Map()
     this._feedsByName = new Map()
@@ -99,8 +100,8 @@ class CorestoreMultifeed extends Nanoresource {
     if (this._feedsByName.has(name)) return cb(null, this._feedsByName.get(name))
     if (opts.keypair) opts.keyPair = opts.keypair
     const feed = this._corestore.namespace(name).default(opts)
+    this._cache(feed, name, true)
     feed.ready(() => {
-      this._cache(feed, name, true)
       cb(null, feed)
     })
   }
