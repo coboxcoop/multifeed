@@ -68,7 +68,6 @@ class CorestoreMultifeed extends Nanoresource {
     this._feedsByName.set(name, feed)
     this._feedsByKey.set(feed.key.toString('hex'), feed)
     this._muxer.addFeed(feed.key)
-    feed.setMaxListeners(Infinity)
     this.emit('feed', feed, name)
   }
 
@@ -84,7 +83,7 @@ class CorestoreMultifeed extends Nanoresource {
     this._handlers.loadFeeds((err, infos) => {
       if (err) return cb(err)
       for (const info of infos) {
-        const feed = this._corestore.get(info.key)
+        const feed = this._corestore.get({ key: info.key })
         this._cache(feed, info.name, false)
       }
       cb()
