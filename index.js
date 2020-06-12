@@ -49,12 +49,10 @@ class CorestoreMultifeed extends Nanoresource {
 
   _close (cb) {
     const self = this
-    const feeds = Array.from(this._feedsByKey.values())
-    if (this._root) feeds.push(this._root)
-    if (this._handlers.close) feeds.push(this._handlers)
-    let pending = feeds.length + 1
-    feeds.forEach(feed => feed.close(onclose))
-    onclose()
+    let pending = 1
+    if (this._root) ++pending && this._root.close(onclose)
+    if (this._handlers.close) ++pending && this._handlers.close(onclose)
+    this._corestore.close(onclose)
     function onclose () {
       if (--pending !== 0) return
       self._feedsByKey = new Map()
