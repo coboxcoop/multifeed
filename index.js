@@ -35,34 +35,30 @@ class CorestoreMultifeed extends Nanoresource {
   _open (cb) {
     this._corestore.ready(err => {
       if (err) return cb(err)
-      this._root = hypercore(ram, this._rootKey)
-      this._muxer = new CorestoreMuxerTopic(this._corestore, this._root.key)
+      this._muxer = new CorestoreMuxerTopic(this._corestore, this._rootKey)
       this._muxer.on('feed', feed => {
-        this._cache(feed)
+        this._cache(feed, null, true)
       })
-      this._root.ready(err => {
-        if (err) return cb(err)
-        this._loadFeeds(cb)
-      })
+      this._loadFeeds(cb)
     })
   }
 
   _close (cb) {
     const self = this
     let pending = 1
-    if (this._root) ++pending && this._root.close(onclose)
     if (this._handlers.close) ++pending && this._handlers.close(onclose)
     this._corestore.close(onclose)
     function onclose () {
       if (--pending !== 0) return
       self._feedsByKey = new Map()
       self._feedsByName = new Map()
-      self._root = null
+      self._rootKey = null
       cb()
     }
   }
 
   _cache (feed, name, save = false) {
+    if (this._feedsByKey.has(feed.key.toString('hex'))) return
     if (!name) name = String(this._feedsByKey.size)
     if (save) this._saveFeed(feed, name)
     this._feedsByName.set(name, feed)
@@ -72,9 +68,8 @@ class CorestoreMultifeed extends Nanoresource {
   }
 
   _saveFeed (feed, name) {
-    if (this._feedsByKey.has(feed.key.toString('hex'))) return
     const info = { key: feed.key.toString('hex'), name }
-    this._handler.saveFeed(info, err => {
+    this._handlers.saveFeed(info, err => {
       if (err) this.emit('error', err)
     })
   }
@@ -105,7 +100,7 @@ class CorestoreMultifeed extends Nanoresource {
     if (opts.keypair) opts.keyPair = opts.keypair
     const feed = this._corestore.namespace(name).default(opts)
     feed.ready(() => {
-      this._cache(feed, name)
+      this._cache(feed, name, true)
       cb(null, feed)
     })
   }
@@ -121,18 +116,22 @@ class CorestoreMultifeed extends Nanoresource {
   }
 
   replicate (isInitiator, opts = {}) {
-    if (!this._root) {
-      var tmp = through()
-      process.nextTick(function () {
-        tmp.emit('error', new Error('tried to use "replicate" before multifeed is ready'))
-      })
-      return tmp
+    if (!this.opened) {
+      return errorStream(new Error('tried to use "replicate" before multifeed is ready'))
     }
 
     const stream = opts.stream || new Protocol(isInitiator, opts)
     this._muxer.addStream(stream, opts)
     return stream
   }
+}
+
+function errorStream (err) {
+  var tmp = through()
+  process.nextTick(function () {
+    tmp.emit('error', err)
+  })
+  return tmp
 }
 
 function defaultCorestore (storage, opts) {
@@ -156,16 +155,16 @@ function defaultPersistHandlers (corestore) {
       feed = corestore.namespace(LISTFEED_NAMESPACE).default({
         valueEncoding: 'json'
       })
-      const rs = feed.createReadStream()
-      collect(rs, cb)
+      feed.ready(() => {
+        const rs = feed.createReadStream()
+        collect(rs, cb)
+      })
     },
 
     saveFeed (info, cb) {
-      feed.append(info, cb)
-    },
-
-    close (cb) {
-      if (feed) feed.close(cb)
+      feed.ready(() => {
+        feed.append(info, cb)
+      })
     }
   }
 }

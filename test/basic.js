@@ -212,8 +212,10 @@ test('get localfeed by name across disk loads', function (t) {
   multi.writer('minuette', function (err, w) {
     t.error(err)
     t.ok(w.key)
+    console.log('now close')
 
     multi.close(function () {
+      console.log('all closed')
       var multi2 = multifeed(storage, { valueEncoding: 'json' })
       multi2.writer('minuette', function (err, w2) {
         t.error(err)
@@ -275,7 +277,7 @@ test('can provide custom encryption key', function (t) {
   var multi = multifeed(ram, { valueEncoding: 'json', encryptionKey: key })
   multi.ready(function () {
     t.same(multi._opts.encryptionKey, key, 'encryption key set')
-    t.same(multi._root.key, key, 'fake key set')
+    t.same(multi._rootKey, key, 'fake key set')
   })
 })
 
