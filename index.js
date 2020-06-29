@@ -7,7 +7,7 @@ const debug = require('debug')('multifeed')
 const raf = require('random-access-file')
 const through = require('through2')
 
-const { CorestoreMuxerTopic } = require('./corestore')
+const { MuxerTopic } = require('./networker')
 
 // Default key to bootstrap replication and namespace the corestore
 // It is not adviced to use this for real purposes. If no root key is
@@ -16,33 +16,24 @@ const { CorestoreMuxerTopic } = require('./corestore')
 // multifeed (if using the default persist handlers).
 const DEFAULT_ROOT_KEY = Buffer.from('bee80ff3a4ee5e727dc44197cb9d25bf8f19d50b0f3ad2984cfe5b7d14e75de7', 'hex')
 
-const MULTIFEED_NAMESPACE_PREFIX = '@multifeed:root:'
+const MULTIFEED_NAMESPACE_PREFIX = '@multifeed:'
 const FEED_NAMESPACE_PREFIX = '@multifeed:feed:'
 const PERSIST_NAMESPACE = '@multifeed:persist'
 
-module.exports = (...args) => new Multifeed(...args)
-
 class Multifeed extends Nanoresource {
-  static defaultCorestore (storage, opts) {
-    if (isCorestore(storage)) return storage
-    if (typeof storage === 'function') {
-      var factory = path => storage(path)
-    } else if (typeof storage === 'string') {
-      factory = path => raf(storage + '/' + path)
-    }
-    return new Corestore(factory, opts)
-  }
-
   constructor (storage, opts) {
     super()
     this._opts = opts
     this._rootKey = opts.rootKey || opts.encryptionKey || opts.key
+    if (this._rootKey && !Buffer.isBuffer(this._rootKey)) {
+      this._rootKey = Buffer.from(this._rootKey, 'hex')
+    }
     if (!this._rootKey) {
       debug('WARNING: Using insecure default root key')
       this._rootKey = DEFAULT_ROOT_KEY
     }
-    this._corestore = Multifeed.defaultCorestore(storage, opts)
-      .namespace(MULTIFEED_NAMESPACE_PREFIX + '/' + this._rootKey)
+    this._corestore = defaultCorestore(storage, opts)
+      .namespace(MULTIFEED_NAMESPACE_PREFIX + this._rootKey.toString('hex'))
 
     this._handlers = opts.handlers || defaultPersistHandlers(this._corestore)
     this._feedsByKey = new Map()
@@ -62,7 +53,7 @@ class Multifeed extends Nanoresource {
   _open (cb) {
     this._corestore.ready(err => {
       if (err) return cb(err)
-      this._muxer = new CorestoreMuxerTopic(this._rootKey, this._corestore)
+      this._muxer = new MuxerTopic(this._rootKey, this._corestore)
       this._muxer.on('feed', feed => {
         this._addFeed(feed, null, true)
       })
@@ -190,3 +181,16 @@ function defaultPersistHandlers (corestore) {
     }
   }
 }
+
+function defaultCorestore (storage, opts) {
+  if (isCorestore(storage)) return storage
+  if (typeof storage === 'function') {
+    var factory = path => storage(path)
+  } else if (typeof storage === 'string') {
+    factory = path => raf(storage + '/' + path)
+  }
+  return new Corestore(factory, opts)
+}
+
+module.exports = function (...args) { return new Multifeed(...args) }
+module.exports.defaultCorestore = defaultCorestore

@@ -3,7 +3,7 @@ const Multiplexer = require('./mux')
 const debug = require('debug')('multifeed')
 const { EventEmitter } = require('events')
 
-class CorestoreMuxerTopic extends EventEmitter {
+class MuxerTopic extends EventEmitter {
   constructor (rootKey, corestore, opts = {}) {
     super()
     this.rootKey = rootKey
@@ -19,7 +19,9 @@ class CorestoreMuxerTopic extends EventEmitter {
   // that is opened for this muxer's rootKey.
   addStream (stream, opts) {
     const self = this
-    opts = { ...this._opts, ...opts, stream }
+
+    // TODO: There seem to be bugs with non-live mode. Investigate.
+    opts = { ...this._opts, ...opts, stream, live: true }
 
     const mux = new Multiplexer(null, this.rootKey, opts)
 
@@ -115,12 +117,18 @@ module.exports = class MultifeedNetworker {
     }
   }
 
+  swarm (multifeed, opts = {}) {
+    multifeed.ready(() => {
+      this.join(multifeed.key, { live: true, mux: multifeed._muxer, ...opts })
+    })
+  }
+
   join (rootKey, opts = {}) {
     if (!Buffer.isBuffer(rootKey)) rootKey = Buffer.from(rootKey, 'hex')
     const hkey = rootKey.toString('hex')
     if (this.muxers.has(hkey)) return this.muxers.get(hkey)
 
-    const mux = opts.mux || new CorestoreMuxerTopic(rootKey, this.corestore, opts)
+    const mux = opts.mux || new MuxerTopic(rootKey, this.corestore, opts)
 
     const discoveryKey = crypto.discoveryKey(rootKey)
     // Join the swarm.
@@ -134,4 +142,4 @@ module.exports = class MultifeedNetworker {
   }
 }
 
-module.exports.CorestoreMuxerTopic = CorestoreMuxerTopic
+module.exports.MuxerTopic = MuxerTopic
