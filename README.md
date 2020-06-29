@@ -17,6 +17,7 @@ multfeedNetworker.swarm(multi1)
 
 // use as multifeed as documented below
 // you can add as many multifeeds as you want to a single networker instance
+```
 
 ---
 
