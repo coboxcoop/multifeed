@@ -42,12 +42,12 @@ test('corestore networker example', async function (t) {
   const mux2b = muxer2.join(KEY_B, { live: true, name: 'mux2b' })
 
   // Person 1 adds the same feed to both multifeeds.
-  mux1a.addFeed(core1.key)
-  mux1b.addFeed(core1.key)
+  mux1a.addFeed(core1)
+  mux1b.addFeed(core1)
 
   // Person2 adds two different feeds to each multifeed.
-  mux2a.addFeed(core2a.key)
-  mux2b.addFeed(core2b.key)
+  mux2a.addFeed(core2a)
+  mux2b.addFeed(core2b)
 
   // Wait for things to sync.
   // TODO: Remove timeout, wait for event instead.
@@ -83,7 +83,7 @@ test('corestore to multifeed over hyperswarm', async t => {
   const core = store.get()
   const muxer = new Muxer(networker)
   const mux = muxer.join(muxkey)
-  mux.addFeed(core.key)
+  mux.addFeed(core)
 
   // setup a multifeed muxer plus network
   const multi = multifeed(ram, { encryptionKey: muxkey })
