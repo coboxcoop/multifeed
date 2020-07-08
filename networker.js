@@ -4,10 +4,9 @@ const debug = require('debug')('multifeed')
 const { EventEmitter } = require('events')
 
 class MuxerTopic extends EventEmitter {
-  constructor (rootKey, corestore, opts = {}) {
+  constructor (rootKey, opts = {}) {
     super()
     this.rootKey = rootKey
-    this._corestore = corestore
     this._feeds = new Map()
     this._streams = new Map()
     this._opts = opts
@@ -43,17 +42,32 @@ class MuxerTopic extends EventEmitter {
     }
 
     function onreplicate (keys, repl) {
-      for (const key of keys) {
-        if (self._feeds.has(key)) continue
-        // TODO: This is the only place where we ever access the corestore directly
-        // from the networking code. Move to callback option with the following line
-        // as default option.
-        const feed = self._corestore.get({ key })
-        self.addFeed(feed)
-        self.emit('feed', feed)
+      let pending = keys.length
+      let feeds = []
+
+      function next (i) {
+        var key = keys[i]
+        debug("onreplicate", key)
+        if (!key) return done()
+
+        process.nextTick(next, i + 1)
+
+        if (self._feeds.has(key)) return done()
+        self._opts.getFeed(key, (feed) => {
+          self.addFeed(feed)
+          self.emit('feed', feed)
+          done()
+        })
       }
-      const feeds = keys.map(key => self._feeds.get(key))
-      repl(feeds)
+
+      function done () {
+        if (!--pending) {
+          const feeds = keys.map(key => self._feeds.get(key))
+          repl(feeds)
+        }
+      }
+
+      next(0)
     }
 
     function cleanup (_err) {
@@ -119,7 +133,12 @@ module.exports = class MultifeedNetworker {
 
   swarm (multifeed, opts = {}) {
     multifeed.ready(() => {
-      this.join(multifeed.key, { live: true, mux: multifeed._muxer, ...opts })
+      this.join(multifeed.key, {
+        live: true,
+        mux: multifeed._muxer,
+        getFeed: multifeed.getFeed,
+        ...opts
+      })
     })
   }
 
@@ -127,8 +146,9 @@ module.exports = class MultifeedNetworker {
     if (!Buffer.isBuffer(rootKey)) rootKey = Buffer.from(rootKey, 'hex')
     const hkey = rootKey.toString('hex')
     if (this.muxers.has(hkey)) return this.muxers.get(hkey)
+    if (!opts.getFeed) opts.getFeed = (key, cb) => cb(this.corestore.get({ key }))
 
-    const mux = opts.mux || new MuxerTopic(rootKey, this.corestore, opts)
+    const mux = opts.mux || new MuxerTopic(rootKey, opts)
 
     const discoveryKey = crypto.discoveryKey(rootKey)
     // Join the swarm.

@@ -22,9 +22,10 @@ const FEED_NAMESPACE_PREFIX = '@multifeed:feed:'
 const PERSIST_NAMESPACE = '@multifeed:persist'
 
 class Multifeed extends Nanoresource {
-  constructor (storage, opts) {
+  constructor (storage, opts = {}) {
     super()
     this._opts = opts
+    this._id = hcrypto.randomBytes(2).toString('hex')
     this._rootKey = opts.rootKey || opts.encryptionKey || opts.key
     if (this._rootKey && !Buffer.isBuffer(this._rootKey)) {
       this._rootKey = Buffer.from(this._rootKey, 'hex')
@@ -54,7 +55,10 @@ class Multifeed extends Nanoresource {
   _open (cb) {
     this._corestore.ready(err => {
       if (err) return cb(err)
-      this._muxer = new MuxerTopic(this._rootKey, this._corestore)
+      this._muxer = new MuxerTopic(this._rootKey, {
+        ...this._opts,
+        getFeed: this._getFeed.bind(this)
+      })
       this._muxer.on('feed', feed => {
         this._addFeed(feed, null, true)
       })
@@ -74,6 +78,14 @@ class Multifeed extends Nanoresource {
       self._rootKey = null
       cb()
     }
+  }
+
+  _getFeed (key, cb) {
+    var feed = this._corestore.get({
+      key,
+      valueEncoding: this._opts.valueEncoding
+    })
+    return cb(feed)
   }
 
   _addFeed (feed, name, save = false) {
@@ -97,7 +109,10 @@ class Multifeed extends Nanoresource {
     this._handlers.fetchFeeds((err, infos) => {
       if (err) return cb(err)
       for (const info of infos) {
-        const feed = this._corestore.get(assign({ key: info.key }, this._opts))
+        const feed = this._corestore.get({
+          key: info.key,
+          valueEncoding: this._opts.valueEncoding
+        })
         this._addFeed(feed, info.name, false)
       }
       cb()
@@ -117,7 +132,11 @@ class Multifeed extends Nanoresource {
     }
     if (this._feedsByName.has(name)) return cb(null, this._feedsByName.get(name))
     const namespace = FEED_NAMESPACE_PREFIX + name
-    const feed = this._corestore.namespace(namespace).default(assign(this._opts, opts))
+    const coreOpts = {
+      valueEncoding: this._opts.valueEncoding,
+      ...opts
+    }
+    const feed = this._corestore.namespace(namespace).default(coreOpts)
     this._addFeed(feed, name, true)
     feed.ready(() => {
       cb(null, feed)
