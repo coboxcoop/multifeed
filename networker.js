@@ -140,6 +140,17 @@ module.exports = class MultifeedNetworker {
     }
     return mux
   }
+
+  leave (rootKey) {
+    if (!Buffer.isBuffer(rootKey)) rootKey = Buffer.from(rootKey, 'hex')
+    const hkey = rootKey.toString('hex')
+    var mux = this.muxers.get(hkey)
+    if (!mux) return false // throw??
+    const discoveryKey = crypto.discoveryKey(rootKey)
+    this.networker.leave(discoveryKey)
+    this.muxers.delete(hkey)
+    return true
+  }
 }
 
 module.exports.MuxerTopic = MuxerTopic

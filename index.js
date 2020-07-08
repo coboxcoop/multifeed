@@ -6,6 +6,7 @@ const collect = require('stream-collector')
 const debug = require('debug')('multifeed')
 const raf = require('random-access-file')
 const through = require('through2')
+const { assign } = Object
 
 const { MuxerTopic } = require('./networker')
 
@@ -96,7 +97,7 @@ class Multifeed extends Nanoresource {
     this._handlers.fetchFeeds((err, infos) => {
       if (err) return cb(err)
       for (const info of infos) {
-        const feed = this._corestore.get({ key: info.key })
+        const feed = this._corestore.get(assign({ key: info.key }, this._opts))
         this._addFeed(feed, info.name, false)
       }
       cb()
@@ -115,10 +116,8 @@ class Multifeed extends Nanoresource {
       opts = {}
     }
     if (this._feedsByName.has(name)) return cb(null, this._feedsByName.get(name))
-    // TODO: Only support keyPair
-    if (opts.keypair) opts.keyPair = opts.keypair
     const namespace = FEED_NAMESPACE_PREFIX + name
-    const feed = this._corestore.namespace(namespace).default(opts)
+    const feed = this._corestore.namespace(namespace).default(assign(this._opts, opts))
     this._addFeed(feed, name, true)
     feed.ready(() => {
       cb(null, feed)
