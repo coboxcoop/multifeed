@@ -55,9 +55,9 @@ class Multifeed extends Nanoresource {
   _open (cb) {
     this._corestore.ready(err => {
       if (err) return cb(err)
-      this._muxer = new MuxerTopic(this._rootKey, {
-        ...this._opts,
-        getFeed: this._getFeed.bind(this)
+      this._muxer = this._opts.muxer || new MuxerTopic(this._rootKey, {
+        getFeed: (key, cb) => cb(this._corestore.get({ key })),
+        ...this._opts
       })
       this._muxer.on('feed', feed => {
         this._addFeed(feed, null, true)
@@ -78,14 +78,6 @@ class Multifeed extends Nanoresource {
       self._rootKey = null
       cb()
     }
-  }
-
-  _getFeed (key, cb) {
-    var feed = this._corestore.get({
-      key,
-      valueEncoding: this._opts.valueEncoding
-    })
-    return cb(feed)
   }
 
   _addFeed (feed, name, save = false) {
@@ -132,11 +124,10 @@ class Multifeed extends Nanoresource {
     }
     if (this._feedsByName.has(name)) return cb(null, this._feedsByName.get(name))
     const namespace = FEED_NAMESPACE_PREFIX + name
-    const coreOpts = {
+    const feed = this._corestore.namespace(namespace).default({
       valueEncoding: this._opts.valueEncoding,
       ...opts
-    }
-    const feed = this._corestore.namespace(namespace).default(coreOpts)
+    })
     this._addFeed(feed, name, true)
     feed.ready(() => {
       cb(null, feed)

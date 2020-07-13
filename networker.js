@@ -4,12 +4,14 @@ const debug = require('debug')('multifeed')
 const { EventEmitter } = require('events')
 
 class MuxerTopic extends EventEmitter {
-  constructor (rootKey, opts = {}) {
+  constructor (corestore, rootKey, opts = {}) {
     super()
+    this.corestore = corestore
     this.rootKey = rootKey
     this._feeds = new Map()
     this._streams = new Map()
     this._opts = opts
+    this.getFeed = opts.getFeed || this._getFeed.bind(this)
   }
 
   // Add a stream to the multiplexer.
@@ -47,13 +49,13 @@ class MuxerTopic extends EventEmitter {
 
       function next (i) {
         var key = keys[i]
-        debug("onreplicate", key)
         if (!key) return done()
 
         process.nextTick(next, i + 1)
 
         if (self._feeds.has(key)) return done()
-        self._opts.getFeed(key, (feed) => {
+
+        self.getFeed(key, (feed) => {
           self.addFeed(feed)
           self.emit('feed', feed)
           done()
@@ -85,6 +87,10 @@ class MuxerTopic extends EventEmitter {
 
   feeds () {
     return Array.from(this._feeds.values())
+  }
+
+  _getFeed (key, cb) {
+    cb(this.corestore.get({ key }))
   }
 
   addFeed (feed) {
@@ -133,12 +139,7 @@ module.exports = class MultifeedNetworker {
 
   swarm (multifeed, opts = {}) {
     multifeed.ready(() => {
-      this.join(multifeed.key, {
-        live: true,
-        mux: multifeed._muxer,
-        getFeed: multifeed.getFeed,
-        ...opts
-      })
+      this.join(multifeed.key, { live: true, mux: multifeed._muxer, ...opts })
     })
   }
 
@@ -146,10 +147,7 @@ module.exports = class MultifeedNetworker {
     if (!Buffer.isBuffer(rootKey)) rootKey = Buffer.from(rootKey, 'hex')
     const hkey = rootKey.toString('hex')
     if (this.muxers.has(hkey)) return this.muxers.get(hkey)
-    if (!opts.getFeed) opts.getFeed = (key, cb) => cb(this.corestore.get({ key }))
-
-    const mux = opts.mux || new MuxerTopic(rootKey, opts)
-
+    const mux = opts.mux || new MuxerTopic(this.corestore, rootKey, opts)
     const discoveryKey = crypto.discoveryKey(rootKey)
     // Join the swarm.
     this.networker.join(discoveryKey)
