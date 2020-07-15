@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-"@hyperswarm/dht@^3.2.0", "@hyperswarm/dht@^3.6.5":
+"@hyperswarm/dht@^3.6.5":
   version "3.6.5"
   resolved "https://registry.yarnpkg.com/@hyperswarm/dht/-/dht-3.6.5.tgz#a40d3b7df6e209a10accfb9446cc7580c4f10d6d"
   integrity sha512-SJL3cVG0ahecikal+Xv4+AbUYo/PVcymD36bX7C71E3Q3iUR5eNntXRoZP0BgOklMFT/x5rzkHy6HJYYxPa7pQ==
@@ -17,13 +17,27 @@
     sodium-native "^3.1.1"
     uint64be "^2.0.2"
 
-"@hyperswarm/discovery@^1.6.0":
-  version "1.11.5"
-  resolved "https://registry.yarnpkg.com/@hyperswarm/discovery/-/discovery-1.11.5.tgz#3483a96e15ed4d087af0e552f3e82fb14a7aa1d9"
-  integrity sha512-C5Hbq31lkfrjFytuujSxzvied3PzDU98xeKs34oW/D7NIexGM13dqKC8mMDxkxkqXDMzx/vKrwvD/Jfd+q79uQ==
+"@hyperswarm/dht@^4.0.0":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@hyperswarm/dht/-/dht-4.0.1.tgz#f04b49e672c4cfef696e674dbb462f97d9f7a89e"
+  integrity sha512-wMBbz0m8rgQMERt/Ot6BGo5Y8+ovJSZmqxF0oA2xYPT8vCVBIr8g2F1BkQcLbX2iKRLXRnhic02OEq8b41M0sw==
   dependencies:
-    "@hyperswarm/dht" "^3.2.0"
-    multicast-dns "^7.2.0"
+    "@hyperswarm/hypersign" "^2.0.0"
+    dht-rpc "^4.8.0"
+    end-of-stream "^1.4.1"
+    guard-timeout "^2.0.0"
+    hashlru "^2.3.0"
+    protocol-buffers-encodings "^1.1.0"
+    record-cache "^1.1.0"
+    sodium-native "^3.1.1"
+
+"@hyperswarm/discovery@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@hyperswarm/discovery/-/discovery-2.0.0.tgz#85feffe9c76a10533a876f791bd7d0b2f00a1ca9"
+  integrity sha512-HfEyukBI7hqcccXcFvGIjzcO8bJivdgDdC4LMWjQDWbH8NLZVQU7tKrcazXgqdDtOTb1KFN8ZKxJswz9ThmvgQ==
+  dependencies:
+    "@hyperswarm/dht" "^4.0.0"
+    multicast-dns "^7.2.2"
     timeout-refresh "^1.0.2"
 
 "@hyperswarm/hypersign@^2.0.0":
@@ -33,14 +47,14 @@
   dependencies:
     sodium-native "^3.1.1"
 
-"@hyperswarm/network@^1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@hyperswarm/network/-/network-1.5.0.tgz#214280c98a115d38bd9bf7177271385586dba043"
-  integrity sha512-EtEGUew6+odJSMwbpzzSxtX7VXTDUQ16b/w7jl9MXegKPjQkLTVkGf18luO/sjWC8N81u5XEeabi6x4oKuP1tQ==
+"@hyperswarm/network@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@hyperswarm/network/-/network-2.0.0.tgz#1164ac8369abe4f96027837dd0faf7458438bcfa"
+  integrity sha512-a1AbuGbpe89yOk8qDQ4I2Yi+zl5kRCRcGSetcZKKrSCYqjTgOSRRCXCqhPc2l6l9oB/ecUA0Da8f5Ti6OuFNnQ==
   dependencies:
-    "@hyperswarm/discovery" "^1.6.0"
-    nanoresource "^1.0.0"
-    utp-native "^2.1.3"
+    "@hyperswarm/discovery" "^2.0.0"
+    nanoresource "^1.3.0"
+    utp-native "^2.2.1"
 
 abstract-extension@^3.0.1, abstract-extension@^3.1.0:
   version "3.1.1"
@@ -288,7 +302,7 @@ code-point-at@^1.0.0:
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
-codecs@^2.0.0:
+codecs@^2.0.0, codecs@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/codecs/-/codecs-2.1.0.tgz#ea8878bbb0156ce977ffe275370b3851ef1181d6"
   integrity sha512-nSWYToViFEpZXOxhtMQ6IDs76TN9xKIkHOu1KCr/iFiBcgzKuY1AFPZktuXN8r82FbZ/TXP9fwITszLgcp3eQg==
@@ -318,16 +332,15 @@ core-util-is@~1.0.0:
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
   integrity sha1-tf1UIgqivFq1eqtxQMlAdUUDwac=
 
-corestore-swarm-networking@^5.5.1:
-  version "5.5.1"
-  resolved "https://registry.yarnpkg.com/corestore-swarm-networking/-/corestore-swarm-networking-5.5.1.tgz#73f49c1b401dbbf2f1a92fef22d26cc89b609f7f"
-  integrity sha512-r3dAkUcxmkyxqTX4NxhCseg1Rj3QVLpcE81gOjl8rHZBhv6DZm2V9GQFIWpuza/r3hxJjYIzdxvU4WQv7ZgGyA==
+"corestore-networker@git+https://github.com/andrewosh/corestore-networker#v1.0.1":
+  version "1.0.1"
+  resolved "git+https://github.com/andrewosh/corestore-networker#702d6a4f7aecac4287ce7f22d63dba14a5d747f8"
   dependencies:
-    dat-encoding "^5.0.1"
-    debug "^4.1.1"
-    end-of-stream "^1.4.4"
+    call-me-maybe "^1.0.1"
+    codecs "^2.1.0"
     hypercore-protocol "^8.0.0"
-    hyperswarm "^2.10.0"
+    hyperswarm "^2.14.1"
+    nanoresource-promise "^1.2.2"
     pump "^3.0.0"
 
 corestore@^5.5.0:
@@ -508,7 +521,7 @@ duplexify@^3.6.0:
     readable-stream "^2.0.0"
     stream-shift "^1.0.0"
 
-end-of-stream@^1.0.0, end-of-stream@^1.1.0, end-of-stream@^1.4.1, end-of-stream@^1.4.4:
+end-of-stream@^1.0.0, end-of-stream@^1.1.0, end-of-stream@^1.4.1:
   version "1.4.4"
   resolved "https://registry.yarnpkg.com/end-of-stream/-/end-of-stream-1.4.4.tgz#5ae64a5f45057baf3626ec14da0ca5e4b2431eb0"
   integrity sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==
@@ -1114,12 +1127,12 @@ hypercore@^9.2.2:
   optionalDependencies:
     fd-lock "^1.0.2"
 
-hyperswarm@^2.10.0:
-  version "2.14.0"
-  resolved "https://registry.yarnpkg.com/hyperswarm/-/hyperswarm-2.14.0.tgz#325357c78cabec76e3e0bb109470bf760c6fafe2"
-  integrity sha512-vJI6vVH0/PjlCVdRJLXr1an0guRSYRE1uE5wnEUmgjp4erYBIOALn+0YR/W95fTCZfp9Y+YA2Ku9npo87/tqqg==
+hyperswarm@^2.14.1:
+  version "2.15.0"
+  resolved "https://registry.yarnpkg.com/hyperswarm/-/hyperswarm-2.15.0.tgz#688d68f96c95832f70737e899339e417d31cc823"
+  integrity sha512-Dg2/LMCsV5h6GDEqgZ8Ck2ez8jOpZkCXtphM8ZCBSHznjnFdbGvvwmNeHkKaLqefzEvHealDQRNprqyNtbIgFQ==
   dependencies:
-    "@hyperswarm/network" "^1.5.0"
+    "@hyperswarm/network" "^2.0.0"
     shuffled-priority-queue "^2.1.0"
     utp-native "^2.1.7"
 
@@ -1469,7 +1482,7 @@ ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
-multicast-dns@^7.2.0:
+multicast-dns@^7.2.2:
   version "7.2.2"
   resolved "https://registry.yarnpkg.com/multicast-dns/-/multicast-dns-7.2.2.tgz#5731da04f47d1e435ac457e5ac7b4b39d866a5a1"
   integrity sha512-XqSMeO8EWV/nOXOpPV8ztIpNweVfE1dSpz6SQvDPp71HD74lMXjt4m/mWB1YBMG0kHtOodxRWc5WOb/UNN1A5g==
@@ -1502,7 +1515,14 @@ nanoguard@^1.2.0, nanoguard@^1.2.1, nanoguard@^1.3.0:
   resolved "https://registry.yarnpkg.com/nanoguard/-/nanoguard-1.3.0.tgz#9b38a2a69f30a848f8ed1e4f0dabee8ff506e54c"
   integrity sha512-K/ON5wyflyPyZskdeT3m7Y2gJVkm3QLdKykMCquAbK8A2erstyMpZUc3NG8Nz5jKdfatiYndONrlmLF8+pGl+A==
 
-nanoresource@^1.0.0, nanoresource@^1.3.0:
+nanoresource-promise@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/nanoresource-promise/-/nanoresource-promise-1.2.2.tgz#4b57abcdbfffd2acde8ff93b17c9c137c9fb28e8"
+  integrity sha512-XCRcRrCoTifA6XJqYaMqlHgWFrAq6aGNnXboRa/Dxa0TNkm3S13+RWCD7/XaB4ySunAmZzx81++OS4kqkDynuA==
+  dependencies:
+    nanoresource "^1.3.0"
+
+nanoresource@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/nanoresource/-/nanoresource-1.3.0.tgz#823945d9667ab3e81a8b2591ab8d734552878cd0"
   integrity sha512-OI5dswqipmlYfyL3k/YMm7mbERlh4Bd1KuKdMHpeoVD1iVxqxaTMKleB4qaA2mbQZ6/zMNSxCXv9M9P/YbqTuQ==
@@ -2346,10 +2366,21 @@ util-deprecate@^1.0.1, util-deprecate@~1.0.1:
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
 
-utp-native@^2.1.3, utp-native@^2.1.7:
+utp-native@^2.1.7:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/utp-native/-/utp-native-2.2.0.tgz#73bf98cf179067a8b27cfb84f40fa10098678c2a"
   integrity sha512-Yx7O/vbgBNnsqEdIrVzST/cF8Tj/JaLUeQEdRbCSKDpSnHEf+kioD0Xspau2OAI/jkZaAxc67/HqLc03Ykf4mQ==
+  dependencies:
+    napi-macros "^2.0.0"
+    node-gyp-build "^4.2.0"
+    readable-stream "^3.0.2"
+    timeout-refresh "^1.0.0"
+    unordered-set "^2.0.1"
+
+utp-native@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/utp-native/-/utp-native-2.2.1.tgz#6d33feba04bfe49b368bad05555703f9728b6e63"
+  integrity sha512-7GvD4gjGyL1GaNtZAaBVHn8SeWgx9/xIVE1LufMR0m2pWUs1EVx5WiOCXrCHyt7e15+5SquBMoQfj888pJySxA==
   dependencies:
     napi-macros "^2.0.0"
     node-gyp-build "^4.2.0"

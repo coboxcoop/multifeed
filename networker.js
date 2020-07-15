@@ -150,7 +150,7 @@ module.exports = class MultifeedNetworker {
     const mux = opts.mux || new MuxerTopic(this.corestore, rootKey, opts)
     const discoveryKey = crypto.discoveryKey(rootKey)
     // Join the swarm.
-    this.networker.join(discoveryKey)
+    this.networker.configure(discoveryKey, { announce: true, lookup: true })
     this.muxers.set(hkey, mux)
     // Add all existing streams to the multiplexer.
     for (const { stream } of this.streamsByKey.values()) {
@@ -165,7 +165,7 @@ module.exports = class MultifeedNetworker {
     var mux = this.muxers.get(hkey)
     if (!mux) return false // throw??
     const discoveryKey = crypto.discoveryKey(rootKey)
-    this.networker.leave(discoveryKey)
+    this.networker.leave(discoveryKey, { announce: false, lookup: false })
     this.muxers.delete(hkey)
     return true
   }

@@ -55,7 +55,7 @@ class Multifeed extends Nanoresource {
   _open (cb) {
     this._corestore.ready(err => {
       if (err) return cb(err)
-      this._muxer = this._opts.muxer || new MuxerTopic(this._rootKey, {
+      this._muxer = this._opts.muxer || new MuxerTopic(this.corestore, this._rootKey, {
         getFeed: (key, cb) => cb(this._corestore.get({ key })),
         ...this._opts
       })
@@ -103,7 +103,7 @@ class Multifeed extends Nanoresource {
       for (const info of infos) {
         const feed = this._corestore.get({
           key: info.key,
-          valueEncoding: this._opts.valueEncoding
+          ...this._opts
         })
         this._addFeed(feed, info.name, false)
       }
