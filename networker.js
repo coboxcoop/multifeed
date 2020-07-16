@@ -57,7 +57,8 @@ class MuxerTopic extends EventEmitter {
 
         if (self._feeds.has(key)) return done()
 
-        self.getFeed(key, (feed) => {
+        self.getFeed(key, (err, feed) => {
+          if (err) return done(err)
           self.addFeed(feed)
           self.emit('feed', feed)
           done()
