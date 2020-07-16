@@ -44,12 +44,14 @@ class MuxerTopic extends EventEmitter {
     }
 
     function onreplicate (keys, repl) {
-      let pending = keys.length
+      let pending = 1
       let feeds = []
 
       function next (i) {
         var key = keys[i]
         if (!key) return done()
+
+        ++pending
 
         process.nextTick(next, i + 1)
 
