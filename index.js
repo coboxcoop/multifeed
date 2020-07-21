@@ -37,7 +37,7 @@ class Multifeed extends Nanoresource {
     this._corestore = defaultCorestore(storage, opts)
       .namespace(MULTIFEED_NAMESPACE_PREFIX + this._rootKey.toString('hex'))
 
-    this._handlers = opts.handlers || defaultPersistHandlers(this._corestore)
+    this._handlers = opts.handlers || new MultifeedPersistence(this._corestore)
     this._feedsByKey = new Map()
     this._feedsByName = new Map()
     this.ready = this.open.bind(this)
@@ -55,11 +55,14 @@ class Multifeed extends Nanoresource {
   _open (cb) {
     this._corestore.ready(err => {
       if (err) return cb(err)
-      this._muxer = this._opts.muxer || new MuxerTopic(this._corestore, this._rootKey, this._opts)
-      this._muxer.on('feed', feed => {
-        this._addFeed(feed, null, true)
+      this._handlers.ready((err) => {
+        if (err) return cb(err)
+        this._muxer = this._opts.muxer || new MuxerTopic(this._corestore, this._rootKey, this._opts)
+        this._muxer.on('feed', feed => {
+          this._addFeed(feed, null, true)
+        })
+        this._fetchFeeds(cb)
       })
-      this._fetchFeeds(cb)
     })
   }
 
@@ -151,6 +154,36 @@ class Multifeed extends Nanoresource {
   }
 }
 
+class MultifeedPersistence {
+  constructor (corestore) {
+    this.storage = corestore.namespace(PERSIST_NAMESPACE)
+    this.feed = null
+  }
+
+  ready (cb) {
+    this.feed = this.storage.default({ valueEncoding: 'json' })
+    this.feed.ready(cb)
+  }
+
+  fetchFeeds (cb) {
+    this.feed.ready(err => {
+      if (err) return cb(err)
+      collect(this.feed.createReadStream(), cb)
+    })
+  }
+
+  storeFeed (info, cb) {
+    this.feed.ready(err => {
+      if (err) return cb(err)
+      this.feed.append(info, cb)
+    })
+  }
+
+  close (cb) {
+    this.storage.close(cb)
+  }
+}
+
 function errorStream (err) {
   var tmp = through()
   process.nextTick(function () {
@@ -161,31 +194,6 @@ function errorStream (err) {
 
 function isCorestore (storage) {
   return storage.default && storage.get && storage.replicate && storage.close
-}
-
-function defaultPersistHandlers (corestore) {
-  const namespacedStore = corestore.namespace(PERSIST_NAMESPACE)
-  let feed
-  return {
-    fetchFeeds (cb) {
-      feed = namespacedStore.default({ valueEncoding: 'json' })
-      feed.ready(err => {
-        if (err) return cb(err)
-        collect(feed.createReadStream(), cb)
-      })
-    },
-
-    storeFeed (info, cb) {
-      feed.ready(err => {
-        if (err) return cb(err)
-        feed.append(info, cb)
-      })
-    },
-
-    close (cb) {
-      namespacedStore.close(cb)
-    }
-  }
 }
 
 function defaultCorestore (storage, opts) {
