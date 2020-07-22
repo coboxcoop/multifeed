@@ -170,7 +170,7 @@ module.exports = class MultifeedNetworker {
     var mux = this.muxers.get(hkey)
     if (!mux) return false // throw??
     const discoveryKey = crypto.discoveryKey(rootKey)
-    this.networker.leave(discoveryKey, { announce: false, lookup: false })
+    this.networker.configure(discoveryKey, { announce: false, lookup: false })
     this.muxers.delete(hkey)
     return true
   }
