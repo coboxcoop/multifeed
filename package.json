@@ -13,7 +13,7 @@
   "bugs": "https://github.com/noffle/multifeed/issues",
   "main": "index.js",
   "scripts": {
-    "test": "tape test/*.js",
+    "test": "tape 'test/*.js'",
     "lint": "standard"
   },
   "keywords": [],
