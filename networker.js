@@ -6,6 +6,7 @@ const { EventEmitter } = require('events')
 class MuxerTopic extends EventEmitter {
   constructor (corestore, rootKey, opts = {}) {
     super()
+    this._id = crypto.randomBytes(2).toString('hex')
     this.corestore = corestore
     this.rootKey = rootKey
     this._feeds = new Map()
@@ -56,8 +57,8 @@ class MuxerTopic extends EventEmitter {
 
         self.getFeed(key, (err, feed) => {
           if (err) return done(err)
-          self.addFeed(feed)
           self.emit('feed', feed)
+          self.addFeed(feed)
           next()
         })
       }
@@ -164,6 +165,10 @@ module.exports = class MultifeedNetworker {
     const discoveryKey = crypto.discoveryKey(rootKey)
     this.networker.configure(discoveryKey, { announce: false, lookup: false })
     this.muxers.delete(hkey)
+    // remove and close any existing streams from this mux instance
+    for (const { stream } of this.streamsByKey.values()) {
+      mux.removeStream(stream)
+    }
     return true
   }
 }
